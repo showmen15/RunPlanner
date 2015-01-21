@@ -23,27 +23,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SIZE 50
+#include "TcpServer.h";
 
 using namespace std;
 
-
-char* runPlanner(const char* plannerPath)
+string runPlanner(string plannerPath)
 {
-	FILE *handle = popen(plannerPath, "r");
+	string s;
+	FILE *handle = popen(plannerPath.c_str(), "r");
 	char buf[4048];
 
-		        if (handle == NULL) {
-		                return NULL;
-		        }
+	if (handle == NULL)
+		return NULL;
 
+	fread(buf, 1, sizeof(buf), handle);
+	pclose(handle);
+	s = buf;
 
-		        size_t readn;
-		        while ((readn = fread(buf, 1, sizeof(buf), handle)) > 0) {
-		                fwrite(buf, 1, readn, stdout);
-		        }
-
-		        pclose(handle);
+	return s;
 }
 
 void saveToFile(string sMap,string sPath)
@@ -54,94 +51,70 @@ void saveToFile(string sMap,string sPath)
 	myfile.close();
 }
 
-char* getPlanForRobots(string sMap,string sPath,const char* plannerPath)
+string getPlanForRobots(string sMap,string sPath,string plannerPath)
 {
 	saveToFile(sMap,sPath);
 
 	return runPlanner(plannerPath);
 }
 
-
-/*
-	const char* plannerPath =  "/home/szsz/Desktop/SubProgram/prog";
-	string sMapJSON = "";
-	string sPathJSON = "";
-
-	char* robotPlan = getPlanForRobots()*/
-
 int main()
 {
-	  // Two socket descriptors which are just integer numbers used to access a socket
-	        int sock_descriptor, conn_desc;
+	string sPathJSON = "../../MazeRobo.roson";
+	string plannerPath =  "python ../../solver.py " + sPathJSON;
 
-	        // Two socket address structures - One for the server itself and the other for client
-	        struct sockaddr_in serv_addr, client_addr;
+	//string plannerPath =  "python ../../solver.py ../../MazeRoboLabFullMap_graphSimpleKopia.roson";
 
-	        // Buffer to store data read from client
-	        char buff[MAX_SIZE];
+	TcpServer *tcp = new TcpServer(13000);
+	string sMapJSON;
+	string message;
+	string sPlan;
+	bool isClientConnected = false;
 
-	        // Create socket of domain - Internet (IP) address, type - Stream based (TCP) and protocol unspecified
-	        // since it is only useful when underlying stack allows more than one protocol and we are choosing one.
-	        // 0 means choose the default protocol.
-	        sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+	while(true)
+	{
+		isClientConnected = false;
 
-	        // A valid descriptor is always a positive value
-	        if(sock_descriptor < 0)
-	          printf("Failed creating socket\n");
+		printf("Oczekuje na klienta\n");
 
-	        // Initialize the server address struct to zero
-	        bzero((char *)&serv_addr, sizeof(serv_addr));
+		tcp->AcceptClient();
 
-	        // Fill server's address family
-	        serv_addr.sin_family = AF_INET;
+		printf("Klient polaczony\n");
 
-	        // Server should allow connections from any ip address
-	        serv_addr.sin_addr.s_addr = INADDR_ANY;
+		isClientConnected = true;
 
-	        // 16 bit port number on which server listens
-	        // The function htons (host to network short) ensures that an integer is interpretted
-	        // correctly (whether little endian or big endian) even if client and server have different architectures
-	        serv_addr.sin_port = htons(13000);
+		do
+		{
+			try
+			{
+				sMapJSON = tcp->Listen();
 
-	        // Attach the server socket to a port. This is required only for server since we enforce
-	        // that it does not select a port randomly on it's own, rather it uses the port specified
-	        // in serv_addr struct.
-	        if (bind(sock_descriptor, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	        	printf("Failed to bind\n");
+				if(sMapJSON.size() > 0)
+				{
+					printf( "Otrzymano%s\n", sMapJSON.c_str());
 
-	        // Server should start listening - This enables the program to halt on accept call (coming next)
-	        // and wait until a client connects. Also it specifies the size of pending connection requests queue
-	        // i.e. in this case it is 5 which means 5 clients connection requests will be held pending while
-	        // the server is already processing another connection request.
-	        listen(sock_descriptor, 5);
+					sPlan = getPlanForRobots(sMapJSON,sPathJSON,plannerPath);
 
-	        printf("Waiting for connection...\n");
-	        unsigned int size = sizeof(client_addr);
+					printf( "Wygenerowano %s\n", sPlan.c_str());
 
-	        // Server blocks on this call until a client tries to establish connection.
-	        // When a connection is established, it returns a 'connected socket descriptor' different
-	        // from the one created earlier.
-	        conn_desc = accept(sock_descriptor, (struct sockaddr *)&client_addr, &size);
-	        if (conn_desc == -1)
-	        	printf("Failed accepting connection\n");
-	        else
-			printf("Connected\n");
+					tcp->Send(sPlan);
 
-	        // The new descriptor can be simply read from / written up just like a normal file descriptor
-	        if ( read(conn_desc, buff, sizeof(buff)-1) > 0)
-	        	printf("Received %s", buff);
+					printf("Wyslano sPlan\n");
 
-	        else
-	        	printf("Failed receiving\n");
+					fflush(NULL);
+				}
+				else
+					isClientConnected = false;
+			}
+			catch(...)
+			{
+				isClientConnected = false;
+			}
+		}
+		while(isClientConnected);
+	}
 
-
-	        // Program should always close all sockets (the connected one as well as the listening one)
-	        // as soon as it is done processing with it
-	        close(conn_desc);
-	        close(sock_descriptor);
-		return 0;
-
-
+	return 0;
 }
 
 
