@@ -31,7 +31,7 @@ string runPlanner(string plannerPath)
 {
 	string s;
 	FILE *handle = popen(plannerPath.c_str(), "r");
-	char buf[4048];
+	char buf[10000];
 
 	if (handle == NULL)
 		return NULL;
@@ -55,7 +55,7 @@ string getPlanForRobots(string sMap,string sPath,string plannerPath)
 {
 	saveToFile(sMap,sPath);
 
-	return runPlanner(plannerPath);
+	return "TEST "; // runPlanner(plannerPath);
 }
 
 int main()
