@@ -45,10 +45,28 @@ void TcpServer::AcceptClient()
 string TcpServer::Listen()
 {
 	string ss;
+	int sizeMessage = 0;
+	
 
-	if(read(conn_desc, buff, sizeof(buff)-1) > 0)
+
+	if(read(conn_desc, buff, MAX_SIZE) > 0)
 	{
-		ss = buff;
+		ss = buff;		
+		sizeMessage = atoi(ss.c_str());
+		ss = "";
+
+		printf("Ilosc danych otrzymanych %d\n",sizeMessage);
+
+		do
+		{
+         		if(read(conn_desc, buff, MAX_SIZE) > 0)
+			{
+			 ss +=  buff;	
+			}
+
+
+		}
+		while(ss.size() < sizeMessage);
 
 		return ss;
 	}
