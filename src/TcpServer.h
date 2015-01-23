@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SIZE 50
+#define MAX_SIZE 50000
 
 using namespace std;
 
