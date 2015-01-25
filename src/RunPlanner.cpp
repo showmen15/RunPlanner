@@ -55,7 +55,7 @@ string getPlanForRobots(string sMap,string sPath,string plannerPath)
 {
 	saveToFile(sMap,sPath);
 
-	return "TEST "; // runPlanner(plannerPath);
+	return runPlanner(plannerPath);
 }
 
 int main()
