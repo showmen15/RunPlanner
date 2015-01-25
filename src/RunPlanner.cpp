@@ -65,14 +65,15 @@ int main()
 
 	//string plannerPath =  "python ../../solver.py ../../MazeRoboLabFullMap_graphSimpleKopia.roson";
 
-	TcpServer *tcp = new TcpServer(13000);
-	string sMapJSON;
-	string message;
-	string sPlan;
-	bool isClientConnected = false;
-
 	while(true)
 	{
+		TcpServer *tcp = new TcpServer(13000);
+			string sMapJSON;
+			string message;
+			string sPlan;
+			bool isClientConnected = false;
+
+
 		isClientConnected = false;
 
 		printf("Oczekuje na klienta\n");
@@ -96,6 +97,8 @@ int main()
 			fflush(NULL);
 		}
 		tcp->Close();
+
+		delete tcp;
 	}
 
 /*

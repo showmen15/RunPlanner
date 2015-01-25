@@ -11,6 +11,13 @@ TcpServer::TcpServer(int port)
 {
 	sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
+	int optval = 1;
+
+	if (setsockopt(sock_descriptor,SOL_SOCKET,SO_REUSEADDR,&optval,sizeof(optval)) == -1)
+	{
+		 printf("Setsockopt\n");
+	}
+
 	if(sock_descriptor < 0)
 		printf("Failed creating socket\n");
 
@@ -45,27 +52,35 @@ void TcpServer::AcceptClient()
 string TcpServer::Listen()
 {
 	string ss;
+	string temp;
+
 	int sizeMessage = 0;
+	int size = 0;
 	
 
-	if(read(conn_desc, buff, MAX_SIZE) > 0)
+	if( (size = read(conn_desc, buff, MAX_SIZE)) > 0)
 	{
-		ss = buff;		
+		temp = buff;
+		ss = temp.substr(0,size);
 		sizeMessage = atoi(ss.c_str());
+		printf("Dane Ilosc danych %d\n",size);
 		ss = "";
 
 		printf("Ilosc danych otrzymanych %d\n",sizeMessage);
 
 		do
 		{
-         		if(read(conn_desc, buff, MAX_SIZE) > 0)
+         		if((size = read(conn_desc, buff, MAX_SIZE)) > 0)
 			{
-			 ss +=  buff;	
+         			printf("Petla Ilosc danych %d\n",size);
+
+         	 temp = buff;
+			 ss +=  temp.substr(0,size);
 			}
 
-
+         		printf("ss.size() %d\n", ss.size());
 		}
-		while(ss.size() < sizeMessage);
+		while(ss.size() != sizeMessage);
 
 		return ss;
 	}
@@ -80,7 +95,7 @@ void TcpServer::Send(string messsage)
 
 void TcpServer::Close()
 {
-	close(conn_desc);
+	//close(conn_desc);
 //	close(sock_descriptor);
 }
 
