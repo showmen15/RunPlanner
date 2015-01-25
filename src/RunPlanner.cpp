@@ -78,6 +78,34 @@ int main()
 		printf("Oczekuje na klienta\n");
 
 		tcp->AcceptClient();
+		printf("Klient polaczony\n");
+		isClientConnected = true;	
+		
+		sMapJSON = tcp->Listen();
+
+		if(sMapJSON.size() > 0)
+		{
+			printf( "Otrzymano%s\n", sMapJSON.c_str());
+			sPlan = getPlanForRobots(sMapJSON,sPathJSON,plannerPath);
+
+			printf( "Wygenerowano %s\n", sPlan.c_str());
+
+			tcp->Send(sPlan);
+
+			printf("Wyslano sPlan\n");
+			fflush(NULL);
+		}
+		tcp->Close();
+	}
+
+/*
+	while(true)
+	{
+		isClientConnected = false;
+
+		printf("Oczekuje na klienta\n");
+
+		tcp->AcceptClient();
 
 		printf("Klient polaczony\n");
 
@@ -113,7 +141,7 @@ int main()
 		}
 		while(isClientConnected);
 	}
-
+*/
 	return 0;
 }
 
