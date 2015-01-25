@@ -45,6 +45,8 @@ public:
 	void Send(string messsage);
 	void AcceptClient();
 	virtual ~TcpServer();
+	void Close();
+	
 };
 
 #endif /* TCPSERVER_H_ */
