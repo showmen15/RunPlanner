@@ -21,18 +21,18 @@ TcpServer::TcpServer(int port)
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 
 	serv_addr.sin_port = htons(port);
+}
 
+void TcpServer::AcceptClient()
+{
 	if (bind(sock_descriptor, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-		printf("Failed to bind\n");
+	    printf("Failed to bind\n");
 
 	listen(sock_descriptor, 5);
 
 	printf("Waiting for connection...\n");
 	size = sizeof(client_addr);
-}
-
-void TcpServer::AcceptClient()
-{
+	
 	conn_desc = accept(sock_descriptor, (struct sockaddr *)&client_addr, &size);
 
 	if (conn_desc == -1)
@@ -47,7 +47,6 @@ string TcpServer::Listen()
 	string ss;
 	int sizeMessage = 0;
 	
-
 
 	if(read(conn_desc, buff, MAX_SIZE) > 0)
 	{
@@ -77,6 +76,12 @@ string TcpServer::Listen()
 void TcpServer::Send(string messsage)
 {
 	write(conn_desc,messsage.c_str() ,messsage.size());
+}
+
+void TcpServer::Close()
+{
+	close(conn_desc);
+	close(sock_descriptor);
 }
 
 TcpServer::~TcpServer()
